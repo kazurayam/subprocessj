@@ -38,7 +38,7 @@ public class CommandLocatorTest {
         if (OSType.isMac()) {
             String userHome = System.getProperty("user.home");
             String nodePath = clr.command().substring(userHome.length() + 1);
-            assertEquals(".nodebrew/current/bin/node", nodePath);
+            assertEquals(".anyenv/envs/nodenv/shims/node", nodePath);
         }
     }
 
