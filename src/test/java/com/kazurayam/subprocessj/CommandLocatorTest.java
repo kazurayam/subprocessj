@@ -31,6 +31,9 @@ public class CommandLocatorTest {
         }
     }
 
+    /**
+     * The "node" command could be installed in various path, it depends on your environment.
+     */
     @Test
     void test_node_on_Mac() {
         CommandLocator.CommandLocatingResult clr = CommandLocator.find("node");

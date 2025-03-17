@@ -47,6 +47,4 @@ public class HiThereServerAsProcessTest {
         ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
         assertEquals(0, tr.returncode());
     }
-
-
 }

@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SubprocessTest {
@@ -24,7 +23,7 @@ class SubprocessTest {
                     );
         }
         assertEquals(0, cp.returncode());
-        assertTrue(cp.stdout().size() > 0);
+        assertFalse(cp.stdout().isEmpty());
         cp.stdout().forEach(System.out::println);
         cp.stderr().forEach(System.err::println);
         assertTrue(cp.stdout().toString().contains("src"));
@@ -42,7 +41,7 @@ class SubprocessTest {
         assertEquals(0, cp.returncode());
         cp.stdout().forEach(System.out::println);
         cp.stderr().forEach(System.err::println);
-        assertTrue(cp.stdout().size() > 0 || cp.stderr().size() > 0);
+        assertTrue(!cp.stdout().isEmpty() || !cp.stderr().isEmpty());
     }
 
     /**
@@ -57,14 +56,11 @@ class SubprocessTest {
                             .cwd(new File(System.getProperty("user.home")))
                             .run(Arrays.asList("/usr/local/bin/git", "status"));
         assertEquals(128, cp.returncode());
-        //System.out.println(String.format("stdout: %s", cp.getStdout()));
-        //System.out.println(String.format("stderr: %s", cp.getStderr()));
-        assertTrue(cp.stderr().size() > 0);
+        assertFalse(cp.stderr().isEmpty());
         assertEquals(1,
-                cp.stderr().stream()
+                (int) cp.stderr().stream()
                         .filter(line -> line.contains("fatal: not a git repository"))
-                        .collect(Collectors.toList())
-                        .size()
+                        .count()
         );
     }
 
@@ -74,12 +70,10 @@ class SubprocessTest {
         Map<String, String> env = sp.environment();
         assertNotNull(env);
         assertNotNull(env.get("PATH"));
-        /*
         env.keySet().forEach(key -> {
             String value = env.get(key);
-            System.out.println(String.format("%s: %s", key, value));
+            System.out.printf("%s: %s%n", key, value);
         });
-        */
     }
 
     /**
@@ -90,7 +84,6 @@ class SubprocessTest {
         Subprocess sp = new Subprocess();
         Map<String, String> env = sp.environment();
         env.put("PLANTUML_LIMIT_SIZE", "8192");
-        //
         String actual = sp.environment("PLANTUML_LIMIT_SIZE");
         assertEquals("8192", actual);
     }
