@@ -46,6 +46,20 @@ public class CommandLocatorTest {
     }
 
     /**
+     * The "allure" command could be installed in various path, it depends on your environment.
+     */
+    @Test
+    void test_allure_on_Mac() {
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("allure");
+        assertEquals(0, clr.returncode());
+        if (OSType.isMac()) {
+            String userHome = System.getProperty("user.home");
+            String allurePath = clr.command().substring(userHome.length() + 1);
+            assertEquals(".volta/bin/allure", allurePath);
+        }
+    }
+
+    /**
      * The returned value depends on the runtime environment.
      *
      * On Mac, this will return
