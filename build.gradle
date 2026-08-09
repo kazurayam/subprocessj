@@ -17,7 +17,10 @@ base.archivesName = "subprocessj"
 
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
-
+java {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 
 def defaultEncoding = 'UTF-8'
 tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
