@@ -187,6 +187,35 @@ When I executed, I got the following output
 PATH: /bin:/sbin:/usr/bin:/usr/local/bin:/usr/local/bin:/usr/local/go/bin:/usr/local/sbin:/usr/sbin:/Users/kazuakiurayama/.nodebrew/current/bin: ... and a lot more
 ----
 
+== How to get the Git current branch name
+
+[source, java]
+----
+include::../src/test/java/example/GitCommandExample.java[]
+----
+
+When I ran this test, I got the following output in the console:
+
+[source,text]
+----
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test
+current GIT branch: issue38
+/usr/local/bin/git
+> Task :jacocoTestReport
+BUILD SUCCESSFUL in 3s
+4 actionable tasks: 2 executed, 2 up-to-date
+9:29:50: Execution finished ':test --tests "example.GitCommandExample"'.
+----
+
+
+
+
 == links
 
 The artifact is available at the Maven Central repository:

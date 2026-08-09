@@ -1,5 +1,3 @@
-{:toc}
-
 # subprocessj
 
 ## What is this?
@@ -55,7 +53,6 @@ You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. 
     import java.io.File;
     import java.util.Arrays;
     import java.util.Map;
-    import java.util.stream.Collectors;
     import static org.junit.jupiter.api.Assertions.*;
 
     class SubprocessTest {
@@ -73,7 +70,7 @@ You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. 
                         );
             }
             assertEquals(0, cp.returncode());
-            assertTrue(cp.stdout().size() > 0);
+            assertFalse(cp.stdout().isEmpty());
             cp.stdout().forEach(System.out::println);
             cp.stderr().forEach(System.err::println);
             assertTrue(cp.stdout().toString().contains("src"));
@@ -91,7 +88,7 @@ You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. 
             assertEquals(0, cp.returncode());
             cp.stdout().forEach(System.out::println);
             cp.stderr().forEach(System.err::println);
-            assertTrue(cp.stdout().size() > 0 || cp.stderr().size() > 0);
+            assertTrue(!cp.stdout().isEmpty() || !cp.stderr().isEmpty());
         }
 
         /**
@@ -106,29 +103,36 @@ You just call `com.kazurayam.subprocessj.Subprocess.run(List<String> command)`. 
                                 .cwd(new File(System.getProperty("user.home")))
                                 .run(Arrays.asList("/usr/local/bin/git", "status"));
             assertEquals(128, cp.returncode());
-            //System.out.println(String.format("stdout: %s", cp.getStdout()));
-            //System.out.println(String.format("stderr: %s", cp.getStderr()));
-            assertTrue(cp.stderr().size() > 0);
+            assertFalse(cp.stderr().isEmpty());
             assertEquals(1,
-                    cp.stderr().stream()
+                    (int) cp.stderr().stream()
                             .filter(line -> line.contains("fatal: not a git repository"))
-                            .collect(Collectors.toList())
-                            .size()
+                            .count()
             );
         }
 
         @Test
-        void test_environment() {
+        void test_environment_readOnly() {
             Subprocess sp = new Subprocess();
             Map<String, String> env = sp.environment();
             assertNotNull(env);
             assertNotNull(env.get("PATH"));
-            /*
             env.keySet().forEach(key -> {
                 String value = env.get(key);
-                System.out.println(String.format("%s: %s", key, value));
+                System.out.printf("%s: %s%n", key, value);
             });
-            */
+        }
+
+        /**
+         * See https://github.com/kazurayam/VBACallGraph/issues/45 for the background info
+         */
+        @Test
+        void test_environment_setValue() {
+            Subprocess sp = new Subprocess();
+            Map<String, String> env = sp.environment();
+            env.put("PLANTUML_LIMIT_SIZE", "8192");
+            String actual = sp.environment("PLANTUML_LIMIT_SIZE");
+            assertEquals("8192", actual);
         }
     }
 
@@ -205,8 +209,6 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             ProcessTerminationResult tr = ProcessTerminator.killProcessOnPort(8500);
             assertEquals(0, tr.returncode());
         }
-
-
     }
 
 @BeforeAll-annotated method starts the [HiThereServer](../src/main/java/com/kazurayam/subprocessj/HiThereServer.java) using `ProcessBuilder`. The process will start and stay running background. The HiThereServer is a simple HTTP server, listens to the IP port 8500.
@@ -250,6 +252,9 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             }
         }
 
+        /**
+         * The "node" command could be installed in various path, it depends on your environment.
+         */
         @Test
         void test_node_on_Mac() {
             CommandLocator.CommandLocatingResult clr = CommandLocator.find("node");
@@ -257,7 +262,7 @@ See the following sample JUnit 5 test to see how to use the ProcessKiller.
             if (OSType.isMac()) {
                 String userHome = System.getProperty("user.home");
                 String nodePath = clr.command().substring(userHome.length() + 1);
-                assertEquals(".nodebrew/current/bin/node", nodePath);
+                assertEquals(".anyenv/envs/nodenv/shims/node", nodePath);
             }
         }
 
@@ -722,6 +727,59 @@ The output from this test is as follows:
 When I executed, I got the following output
 
     PATH: /bin:/sbin:/usr/bin:/usr/local/bin:/usr/local/bin:/usr/local/go/bin:/usr/local/sbin:/usr/sbin:/Users/kazuakiurayama/.nodebrew/current/bin: ... and a lot more
+
+## How to get the Git current branch name
+
+    package example;
+
+    import com.kazurayam.subprocessj.CommandLocator;
+    import com.kazurayam.subprocessj.OSType;
+    import com.kazurayam.subprocessj.Subprocess;
+    import org.junit.jupiter.api.Test;
+
+    import java.io.IOException;
+    import java.util.Arrays;
+
+    import static org.junit.jupiter.api.Assertions.assertEquals;
+
+    public class GitCommandExample {
+
+        @Test
+        public void test_git_command_path() throws IOException, InterruptedException {
+            CommandLocator.CommandLocatingResult clr = CommandLocator.find("git");
+            assertEquals(0, clr.returncode());
+            System.out.println(clr.command());
+            if (OSType.isMac()) {
+                assertEquals("/usr/local/bin/git", clr.command());
+            }
+        }
+
+        @Test
+        public void test_git_show_current_branch() throws IOException, InterruptedException {
+            Subprocess.CompletedProcess cp =
+                    new Subprocess()
+                            .run(Arrays.asList("git", "branch", "--show-current"));
+            assertEquals(0, cp.returncode());
+            String branchName = cp.stdout().get(0).trim();
+            System.out.printf("current GIT branch: %s%n", branchName);
+        }
+    }
+
+When I ran this test, I got the following output in the console:
+
+    > Task :compileJava UP-TO-DATE
+    > Task :processResources NO-SOURCE
+    > Task :classes UP-TO-DATE
+    > Task :compileTestJava UP-TO-DATE
+    > Task :processTestResources NO-SOURCE
+    > Task :testClasses UP-TO-DATE
+    > Task :test
+    current GIT branch: issue38
+    /usr/local/bin/git
+    > Task :jacocoTestReport
+    BUILD SUCCESSFUL in 3s
+    4 actionable tasks: 2 executed, 2 up-to-date
+    9:29:50: Execution finished ':test --tests "example.GitCommandExample"'.
 
 ## links
 

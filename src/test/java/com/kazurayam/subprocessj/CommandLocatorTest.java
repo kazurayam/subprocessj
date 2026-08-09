@@ -31,6 +31,9 @@ public class CommandLocatorTest {
         }
     }
 
+    /**
+     * The "node" command could be installed in various path, it depends on your environment.
+     */
     @Test
     void test_node_on_Mac() {
         CommandLocator.CommandLocatingResult clr = CommandLocator.find("node");
@@ -38,7 +41,21 @@ public class CommandLocatorTest {
         if (OSType.isMac()) {
             String userHome = System.getProperty("user.home");
             String nodePath = clr.command().substring(userHome.length() + 1);
-            assertEquals(".nodebrew/current/bin/node", nodePath);
+            assertEquals(".anyenv/envs/nodenv/shims/node", nodePath);
+        }
+    }
+
+    /**
+     * The "allure" command could be installed in various path, it depends on your environment.
+     */
+    @Test
+    void test_allure_on_Mac() {
+        CommandLocator.CommandLocatingResult clr = CommandLocator.find("allure");
+        assertEquals(0, clr.returncode());
+        if (OSType.isMac()) {
+            String userHome = System.getProperty("user.home");
+            String allurePath = clr.command().substring(userHome.length() + 1);
+            assertEquals(".volta/bin/allure", allurePath);
         }
     }
 

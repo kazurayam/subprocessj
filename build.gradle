@@ -11,14 +11,16 @@ repositories {
 }
 
 group = 'com.kazurayam'
-version = '0.3.8'
+version = '0.3.9'
 
-archivesBaseName = "subprocessj"
+base.archivesName = "subprocessj"
 
 ext.isReleaseVersion = ! version.endsWith("SNAPSHOT")
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+java {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 
 def defaultEncoding = 'UTF-8'
 tasks.withType(AbstractCompile).each { it.options.encoding = defaultEncoding }
